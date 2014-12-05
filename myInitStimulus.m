@@ -1,4 +1,4 @@
-function stimulus = myInitStimulus(stimulus,myscreen,task,contrast)
+function stimulus = myInitStimulus(stimulus,myscreen,task)
 global MGL;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function to init the stimulus
@@ -19,7 +19,7 @@ stimulus.ypxpdeg = ceil(tan(2*pi/360)*myscreen.displayDistance*stimulus.ypxpcm);
 
 % centerpix = [myscreen.screenWidth/2,myscreen.screenHeight/2];
 
-stimulus.contrasts =contrast;
+% stimulus.contrasts =contrast;
 
 stimulus.frameThick = .08;
 stimulus.reservedColors = [0 0 0; 1 1 1; 0 .6 0];
@@ -57,13 +57,13 @@ stimulus.IncorrectSound = find(strcmp(MGL.soundNames,'Basso'));
 % set up grid:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-stimulus.gaborSize = .5; %degress
+stimulus.gaborSize = .75; %degress
 stimulus.numGridLocs = 24; %going to exclude 13th, which is around fixation
 
 stimulus.numGridRows = 5;
 stimulus.numGridColumns = stimulus.numGridRows;
 
-stimulus.jitterOffsetEDGES = .5; %what is the distance between
+stimulus.jitterOffsetEDGES = .2; %what is the distance between
 stimulus.jitterOffset = stimulus.jitterOffsetEDGES/2 + stimulus.gaborSize/2; %degrees, center to center distance
 
 stimulus.jitterLoc = [ 0,                     stimulus.jitterOffset;...
@@ -140,26 +140,44 @@ stimulus.sizedg = stimulus.gaborSize;
 stimulus.rotation = [1,-1]; % this is the tilt orientation of the gabor stimulus from vertical in Degrees
 stimulus.init = 1;
 
-stimulus.sf = 3.8;                % in cpd
+stimulus.sf = 4;                % in cpd
 stimulus.orientation = 0;       % in deg
 stimulus.phase = 180.*rand(stimulus.numGridLocs,task{1}.numTrials,2); % in deg
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% make grid locs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+for i = 1:task{1}.numTrials
+    for interval = 1:2
+        stimulus.randVars.gridLocs(i,interval,:) = randperm(stimulus.numGridLocs);
+        stimulus.randVars.targetGridLocs(i,interval,:) = stimulus.randVars.gridLocs(i,interval,1:stimulus.numGridLocs/2);
+        stimulus.randVars.distractorGridLocs(i,interval,:) = stimulus.randVars.gridLocs(i,interval,((stimulus.numGridLocs/2)+1):end);
+    end
+    
+    for gridLoc = 1:stimulus.numGridLocs
+        stimulus.randVars.jitterLoc(i,gridLoc,:) = randperm(size(stimulus.jitterLoc,1));
+    end
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % make stim texture
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-gratingMatrix = cell(stimulus.numGridLocs,task{1}.numTrials,2);
-for trial = 1:task{1}.numTrials
+numGratings = 0;
+gratingMatrix = cell(task{1}.numTrials,stimulus.numGridLocs,2);
+disppercent(-inf,'Calculating grating matrices');
+for trial = 1:stimulus.numTrials
         for gridLoc = 1:stimulus.numGridLocs
             for interval = 1:2
+                numGratings = numGratings+1;
                 gratingMatrix{trial,gridLoc,interval} = mglMakeGrating(stimulus.width,...
                                                                           stimulus.height,...
                                                                           stimulus.sf,...
                                                                           90,... %orienation set to 90 => rotated in drawGabor
-                                                                          stimulus.phase(task{1}.randVars.trialIndex(trial,gridLoc,interval)));
+                                                                          stimulus.phase(numGratings));
+               disppercent(numGratings/(stimulus.numTrials*stimulus.numGridLocs*2));
             end
         end
-    end  
 end
 
 res = mkR([size(gratingMatrix{1},1) size(gratingMatrix{1},2)]);
@@ -168,18 +186,18 @@ grating(:,:,4) = 255*mglMakeGaussian(stimulus.width,stimulus.height,stimulus.gau
 
 countGrating = 0;
 disppercent(-inf,'Calculating gabors');
-for trial = 1:task{1}.numTrials
+for trial = 1:stimulus.numTrials
     for gridLoc = 1:stimulus.numGridLocs
         for interval = 1:2
                 % stimulus.texture
-                grating(:,:,1) = stimulus.midGratingColors+gratingMatrix{trial,gridLoc,interval}*(127*stimulus.contrasts(stimulus.randVars.contrast(task{1}.randVars.trialIndex(trial))));
+                grating(:,:,1) = stimulus.midGratingColors+gratingMatrix{trial,gridLoc,interval}*(127*stimulus.contrast);
                 grating(:,:,2) = grating(:,:,1);
                 
                 grating(:,:,3) = grating(:,:,1);
                 stimulus.tex{trial,gridLoc,interval} = mglCreateTexture(grating);
                 %         disppercent(thisContrast/stimulus.deltaGratingColors);
                 countGrating = countGrating+1;
-                disppercent(count/(task{1}.numTrials*stimulus.numGridLocs*2);
+                disppercent(countGrating/(stimulus.numTrials*stimulus.numGridLocs*2));
         end
     end
 end

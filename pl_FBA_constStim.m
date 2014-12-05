@@ -24,7 +24,6 @@ if ieNotDefined('indTilt'),indTilt = 10;end % default tilt
 if ieNotDefined('Eye'),Eye = 0;end % no eye-tracking
 if ieNotDefined('cueType'),cueType = 0;end
 
-contLevels = makeContLevels(indContrast); %  min = 1.5% , max = 80%
 
 thisdir = pwd;
 % make a data directory if necessary
@@ -43,7 +42,6 @@ end
 disp(sprintf('[ DATA ] saving data in: %s',datadirname));
 
 stimulus = [];
-stimulus.Tilt=indTilt;
 
 % clearing old variables:
 clear task myscreen;
@@ -72,22 +70,17 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 task{1}.waitForBacktick = 0;
-task{1}.segmin =     [0.5 .06 .04 .1 .4 .4 1 .03 2];  % segments: 1:fixation, 2:cue 3: ISI 4:stimulus,5: post-stim ISI, 6:response cue 7:response, 8:feedback dur, 9:ITI code
-task{1}.segmax =     [0.5 .06 .04 .1 .4 .4 1 .03 2];  
-task{1}.segquant =   [0 0 0 0 0 0 0 0 0]; % I guess, ITI varies in steps of 0.25
-task{1}.getResponse = [0 0 0 0 0 0 1 0 0]; % responses are allowed during response intervals
+task{1}.segmin =     [0.5, 0.25, 0.5, 0.15, 0.1, 0.15, 0.4, 0.5, 1, .03, 2];  % segments: 1:fixation, 2:cue 3: ISI 4:interval 1, 5: ISI 2, , 6: interval 2,7: ISI 3, 8:response cue 9:response, 10:feedback dur, 11:ITI 
+task{1}.segmax =     [0.5, 0.25, 0.5, 0.15, 0.1, 0.15, 0.4, 0.5, 1, .03, 2]; 
+task{1}.segquant =   [0 0 0 0 0 0 0 0 0 0 0]; % I guess, ITI varies in steps of 0.25
+task{1}.getResponse = [0 0 0 0 0 0 0 0 1 0 0]; % responses are allowed during response intervals
 
 
 
-n_repeats = 5; % n = 5 -> 60 trials per block (1*2*6 *5)
+n_repeats = 3; % n = 5 -> 108 trials per block (1*2*3*3 *6)
 
-if diagonal == 1  
-    [contrast,ori,baseOri,repeat] = ndgrid(1,1:2,1:6,1:n_repeats);
-%     [contrast2,ori2,location2] = ndgrid(1:7,1:2,[1,3]);
-else 
-    [contrast,ori,baseOri,repeat] = ndgrid(1,1:2,1:6,1:n_repeats);
-%     [contrast2,ori2,location2] = ndgrid(1:7,1:2,[2,4]);
-end
+ 
+[contrast,ori,targetAxis,baseOriTarget,baseOriDistractor,repeat] = ndgrid(1,1:2,1:2,1:3,1:3,1:n_repeats);
 %contrast =3 is blank trials. We wants on ~10% of total trials to be blank
 %trials. Re-assign 4 out of 6 blank trials to be non-blank stim containing
 %trials
@@ -95,23 +88,29 @@ end
 % contrast(3,:,[1:2],2)=2; 
 
 if oriType == 1
-    stimulus.baseOri = [ 42, 45, 48,...
-                        -42, -45, 48];
+    stimulus.baseOri = [ 42, 45, 48;...
+                        -42, -45, -48];
 elseif oriType == 2
-    stimulus.baseOri = [-3,  0,  3,...
+    stimulus.baseOri = [-3,  0,  3;...
                         87, 90, 93];
 end
+
+stimulus.contrast = indContrast;
+stimulus.numTrials = length(ori(:)); % n*n_repeats
 
 task{1}.numTrials = length(ori(:)); % n*n_repeats
 task{1}.origNumTrials = length(ori(:)); % n*n_repeats
 random_order = randperm(task{1}.numTrials);
  
 
-stimulus.randVars.baseOri = baseOri(random_order); %one of the 2 positions
+stimulus.randVars.baseOriTarget = baseOriTarget(random_order);
+stimulus.randVars.baseOriDistractor = baseOriDistractor(random_order);
 stimulus.randVars.contrast = contrast(random_order);
 
-stimulus.randVars.targetOrientation = ori(random_order);
+stimulus.randVars.targetOriAxis = targetAxis(random_order);
+stimulus.randVars.distractorOriAxis = ((stimulus.randVars.targetOriAxis-1.5)*-1)+1.5; %Whenever target is 1, distractor is 2, and vice versa
 
+stimulus.randVars.targetOriOffBase = ori(random_order);
 
 task{1}.randVars.len_ = task{1}.numTrials;
 task{1}.randVars.trialIndex = random_order;
@@ -122,17 +121,6 @@ task{1}.randVars.trialIndex = random_order;
 %       (target and distractor locations can repeat -> just purely random;
 %       jitter locations cannot repeat-> choose from the remaining, unused jitter
 %       locations for each grid locations)
-for i = 1:stimulus.numTrials
-    for interval = 1:2
-        stimulus.randVars.gridLocs(i,interval,:) = randperm(stimulus.numGridLocs);
-        stimulus.randVars.targetGridLocs(i,interval,:) = stimulus.randVars.gridLocs(i,1:stimulus.numGridLocs/2);
-        stimulus.randVars.distractorGridLocs(i,interval,:) = stimulus.randVars.gridLocs(i,(stimulus.numGridLocs/2):end);
-    end
-    
-    for gridLoc = 1:stimulus.numGridLocs
-        stimulus.randVars.jitterLoc(i,gridLoc,:) = randperm(size(stimulus.jitterLoc,1));
-    end
-end
 
 % for fixation check/recalibration
 stimulus.trialend = 0;
@@ -143,13 +131,13 @@ stimulus.FixationBreakRecent= 0;
 stimulus.trialAttemptNum = 1;
 stimulus.numFixBreaks = 0;
 stimulus.fixationBreakTrialVect = 0;
-stimulus.LocationIndices=unique(location);
+% stimulus.LocationIndices=unique(location);
 stimulus.upDated = 1;
 stimulus.fixBreakTRACKindex = 0;
 stimulus.testFix1 = 0;
 stimulus.firstFixBreak = 0;
 stimulus.increasedAttemptNum= 0;
-
+stimulus.makeTexMtx = 0;
 
 stimulus.indTilt=indTilt;
 stimulus.preCue.type = cueType;
@@ -162,7 +150,7 @@ task{1}.random = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 myscreen = initStimulus('stimulus',myscreen);
-stimulus = myInitStimulus(stimulus,myscreen,task,contLevels);
+stimulus = myInitStimulus(stimulus,myscreen,task);
 myscreen = eyeCalibDisp(myscreen);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Main display loop
@@ -192,19 +180,34 @@ function [task, myscreen] = StartSegmentCallback(task, myscreen)
 % segments: 1:ITI,   2:fixation,    3:stimulus, 4:response
 global stimulus
 
-if (task.thistrial.thisseg == 9) % ITI
+if (task.thistrial.thisseg == 11) % ITI
     stimulus.trialend = stimulus.trialend + 1;
     stimulus.increasedAttemptNum = 0;
     stimulus.testFix1 = 0;
+    stimulus.makeTexMtx = 0;
 elseif (task.thistrial.thisseg == 1) % fixation
     iti = .6;%task.thistrial.iti;
-    task.thistrial.seglen =[0.5 .06 .04 .1 .4 .4 1 .03 iti];
+    task.thistrial.seglen = [0.5, 0.25, 0.5, 0.15, 0.1, 0.15, 0.4, 0.5, 1, .03, 2];
     %need to make sure that there are only two locations per run
-    stimulus.tmp.targetLocation  = stimulus.eccentricity*[stimulus.locations{stimulus.randVars.targetLocation(task.thistrial.trialIndex)}];%[stimulus.locations{task.thistrial.targetLocation}];
+    if ~stimulus.makeTexMtx
+        for gLoc = 1:(stimulus.numGridLocs/2)
+            for int = 1:2
+            stimulus.tmp.texTarg(gLoc,int) = stimulus.tex{task.thistrial.trialIndex,...
+                                             stimulus.randVars.targetGridLocs(task.thistrial.trialIndex,int,gLoc),int};
+            stimulus.tmp.texDist(gLoc,int) = stimulus.tex{task.thistrial.trialIndex,...
+                                             stimulus.randVars.distractorGridLocs(task.thistrial.trialIndex,int,gLoc),int};
+            stimulus.tmp.targetLocVisAng(gLoc,:,int) =   stimulus.gridLoc{stimulus.randVars.targetGridLocs(task.thistrial.trialIndex,int,gLoc)}...
+                                                        (stimulus.randVars.jitterLoc(int,stimulus.randVars.targetGridLocs(task.thistrial.trialIndex,int,gLoc),int),:);
+            stimulus.tmp.distractorLocVisAng(gLoc,:,int) =   stimulus.gridLoc{stimulus.randVars.distractorGridLocs(task.thistrial.trialIndex,int,gLoc)}...
+                                                            (stimulus.randVars.jitterLoc(int,stimulus.randVars.distractorGridLocs(task.thistrial.trialIndex,int,gLoc),int),:);
+            end
+        end
+            stimulus.makeTexMtx = 1;
+    end
     
     stimulus.FixationStarted=0;
     %response cue
-    stimulus.tmp.respcueLocation=stimulus.randVars.targetLocation(task.thistrial.trialIndex); %if central x
+    stimulus.tmp.respcueLocation=stimulus.randVars.targetOriAxis(task.thistrial.trialIndex); 
     %stimulus.tmp.WedgeStart=stimulus.CueWedges(task.thistrial.targetLocation);
     
     if ~stimulus.testFix1 
@@ -226,7 +229,7 @@ elseif (task.thistrial.thisseg == 1) % fixation
     end
     
     
-elseif (task.thistrial.thisseg == 8) % response
+elseif (task.thistrial.thisseg == 9) % response
     stimulus.trialnum = stimulus.trialnum + 1;
 %     if ~task.thistrial.gotResponse
 %         mglPlaySound(stimulus.noanswer);
@@ -245,9 +248,8 @@ global stimulus;
 
 mglClearScreen(stimulus.grayColor);%###
 
-if (task.thistrial.thisseg == 9) % ITI
+if (task.thistrial.thisseg == 11) % ITI
     drawFixation(task);
-    
 elseif (task.thistrial.thisseg == 1) % Initial Fixation
     
     if ~stimulus.testFix1 
@@ -268,10 +270,12 @@ elseif (task.thistrial.thisseg == 1) % Initial Fixation
     if stimulus.EyeTrack && ~stimulus.FixationBreakCurrent, fixCheck(myscreen,task); end
 elseif (task.thistrial.thisseg == 2) % Pre Cue
     drawFixation(task);
+    stimulus.makeTexMtx = 0;
     
     if stimulus.EyeTrack && ~stimulus.FixationBreakCurrent, fixCheck(myscreen,task); end
     if ~stimulus.FixationBreakCurrent  || ~stimulus.EyeTrack
-    drawPreCue(stimulus.randVars.targetLocation(task.thistrial.trialIndex));
+%     drawPreCue(stimulus.randVars.targetOriAxis(task.thistrial.trialIndex));
+      drawRespCue(stimulus.tmp.respcueLocation)
     end
     
 elseif (task.thistrial.thisseg == 3) % ISI 1
@@ -283,26 +287,51 @@ elseif (task.thistrial.thisseg == 4) % Interval 1
     if stimulus.EyeTrack && ~stimulus.FixationBreakCurrent, fixCheck(myscreen,task); end
     % the contrast value is the threshold itself
     if ~stimulus.FixationBreakCurrent  || ~stimulus.EyeTrack
-    drawGabor(stimulus.contrasts(stimulus.randVars.contrast(task.thistrial.trialIndex)),...
-              stimulus.tmp.targetLocation,...
-              ((stimulus.rotation(stimulus.randVars.targetOrientation(task.thistrial.trialIndex))*stimulus.indTilt)),1,...
-              task.thistrial.trialIndex);
+        %target gabors
+            drawGaborGrid(stimulus.contrast,...
+                          stimulus.tmp.targetLocVisAng(:,:,1),...
+                          stimulus.baseOri(stimulus.randVars.targetOriAxis(task.thistrial.trialIndex),stimulus.randVars.baseOriTarget(task.thistrial.trialIndex)),...
+                          stimulus.tmp.texTarg(:,1),1,task.thistrial.trialIndex);
+        %distractor gabor
+            drawGaborGrid(stimulus.contrast,...
+                          stimulus.tmp.distractorLocVisAng(:,:,1),...
+                         (stimulus.baseOri(stimulus.randVars.distractorOriAxis(task.thistrial.trialIndex),stimulus.randVars.baseOriDistractor(task.thistrial.trialIndex))),...
+                          stimulus.tmp.texDist(:,1),1,task.thistrial.trialIndex);
     end
     
 elseif (task.thistrial.thisseg == 5) % ISI 2
     drawFixation(task);
     if stimulus.EyeTrack && ~stimulus.FixationBreakCurrent, fixCheck(myscreen,task); end
-elseif (task.thistrial.thisseg == 6) % Resp Cue
+    
+elseif (task.thistrial.thisseg == 6) % Interval 2
+    drawFixation(task);
+    if stimulus.EyeTrack && ~stimulus.FixationBreakCurrent, fixCheck(myscreen,task); end
+    % the contrast value is the threshold itself
+    if ~stimulus.FixationBreakCurrent  || ~stimulus.EyeTrack
+        %target gabors
+            drawGaborGrid(stimulus.contrast,...
+                          stimulus.tmp.targetLocVisAng(:,:,2),...
+                         (stimulus.baseOri(stimulus.randVars.targetOriAxis(task.thistrial.trialIndex),stimulus.randVars.baseOriTarget(task.thistrial.trialIndex))...
+                             +(stimulus.rotation(stimulus.randVars.targetOriOffBase(task.thistrial.trialIndex))*stimulus.indTilt)),...
+                          stimulus.tmp.texTarg(:,2),1,task.thistrial.trialIndex);
+        %distractor gabor
+            drawGaborGrid(stimulus.contrast,...
+                          stimulus.tmp.distractorLocVisAng(:,:,2),...
+                         (stimulus.baseOri(stimulus.randVars.distractorOriAxis(task.thistrial.trialIndex),stimulus.randVars.baseOriDistractor(task.thistrial.trialIndex))),...
+                          stimulus.tmp.texDist(:,2),1,task.thistrial.trialIndex);
+    end
+    
+elseif (task.thistrial.thisseg == 8) % Resp Cue
     drawFixation(task);
     if stimulus.EyeTrack && ~stimulus.FixationBreakCurrent, fixCheck(myscreen,task); end
     if ~stimulus.FixationBreakCurrent  || ~stimulus.EyeTrack
         drawRespCue(stimulus.tmp.respcueLocation); % has to be a positive integer
     end
 
-elseif (task.thistrial.thisseg == 7) % Resp Window
+elseif (task.thistrial.thisseg == 9) % Resp Window
     drawFixation(task);
     
-elseif (task.thistrial.thisseg == 8) % Feedback
+elseif (task.thistrial.thisseg == 10) % Feedback
     drawFixation(task);
     
 end
@@ -318,7 +347,7 @@ global stimulus;
 mglClearScreen(stimulus.grayColor); %###
 if ~task.thistrial.gotResponse
     % check response correct or not
-        stimulus.tmp.response = task.thistrial.whichButton == (stimulus.randVars.targetOrientation(task.thistrial.trialIndex)); %1 for left and 2 for right
+        stimulus.tmp.response = task.thistrial.whichButton == (stimulus.randVars.targetOriOffBase(task.thistrial.trialIndex)); %1 for left and 2 for right
     
 end
 
@@ -340,28 +369,6 @@ function drawRespCue(loc)
     mglLines2(stimulus.respcueLocation{loc}(1), stimulus.respcueLocation{loc}(3),...
               stimulus.respcueLocation{loc}(2), stimulus.respcueLocation{loc}(4),stimulus.respCue.width,stimulus.black);
     
-end
-%% makeContLevels
-function [contLevels] = makeContLevels(indThresh,varargin)
-%makes a vector of contrast values (between 0 and 1), dependent on the
-%contrast threshold 'indThresh'
-%max & min contrast
-
-
-% threshCont = .10;
-threshCont = indThresh;
-
-if ieNotDefined('minCont'), minCont = .015; end
-if ieNotDefined('maxCont'), maxCont = .80; end
-
-
-cont2 = 10^(log10(minCont*100)+.25*(log10(threshCont*100) - log10(minCont*100)))/100;
-cont3 = 10^(log10(threshCont*100)-.25*(log10(threshCont*100) - log10(minCont*100)))/100;
-cont5 = 10^(log10(threshCont*100)+(1/8)*(log10(maxCont*100) - log10(threshCont*100)))/100;
-cont6 = 10^(log10(maxCont*100)-.25*(log10(maxCont*100) - log10(threshCont*100)))/100;
-
-
-contLevels = [minCont,cont2,cont3,threshCont,cont5,cont6,maxCont];
 end
 
 %% recalibrateCallback

@@ -1,11 +1,11 @@
 
-stimulus.gaborSize = .5; %degress
+stimulus.gaborSize = .75; %degress
 stimulus.numGridLocs = 24; %going to exclude 13th, which is around fixation
 
 stimulus.numGridRows = 5;
 stimulus.numGridColumns = stimulus.numGridRows;
 
-stimulus.jitterOffsetEDGES = .5; %what is the distance between
+stimulus.jitterOffsetEDGES = .25; %what is the distance between
 stimulus.jitterOffset = stimulus.jitterOffsetEDGES/2 + stimulus.gaborSize/2; %degrees, center to center distance
 
 stimulus.jitterLoc = [ 0,                     stimulus.jitterOffset;...
