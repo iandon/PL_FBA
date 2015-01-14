@@ -57,13 +57,13 @@ stimulus.IncorrectSound = find(strcmp(MGL.soundNames,'Basso'));
 % set up grid:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-stimulus.gaborSize = .75; %degress
+stimulus.gaborSize = 2; %degress
 stimulus.numGridLocs = 24; %going to exclude 13th, which is around fixation
 
 stimulus.numGridRows = 5;
 stimulus.numGridColumns = stimulus.numGridRows;
 
-stimulus.jitterOffsetEDGES = .2; %what is the distance between
+stimulus.jitterOffsetEDGES = .1; %what is the distance between
 stimulus.jitterOffset = stimulus.jitterOffsetEDGES/2 + stimulus.gaborSize/2; %degrees, center to center distance
 
 stimulus.jitterLoc = [ 0,                     stimulus.jitterOffset;...
@@ -71,7 +71,7 @@ stimulus.jitterLoc = [ 0,                     stimulus.jitterOffset;...
                        stimulus.jitterOffset, 0;...
                        0,                    -stimulus.jitterOffset];
 
-stimulus.distBtwnGridLoc = .5; %what is the spacing between each grid location, including the nearest 2 gabor locations
+stimulus.distBtwnGridLoc = .1; %what is the spacing between each grid location, including the nearest 2 gabor locations
 stimulus.spaceBtwnGridLocCENTERS = stimulus.gaborSize*2+stimulus.jitterOffset+stimulus.distBtwnGridLoc;
 
 firstInRow = [1,6,11,15,20];

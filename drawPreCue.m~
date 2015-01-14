@@ -1,0 +1,15 @@
+function drawPreCue(loc)
+    global stimulus
+    
+    if stimulus.preCue.type == 0
+        if stimul
+        mglLines2(stimulus.preCueNeutLocation{1}(1),stimulus.preCueNeutLocation{1}(3),...
+                  stimulus.preCueNeutLocation{1}(2),stimulus.preCueNeutLocation{1}(4),stimulus.respCue.width,stimulus.black);
+        mglLines2(stimulus.preCueNeutLocation{2}(1),stimulus.preCueNeutLocation{2}(3),...
+                  stimulus.preCueNeutLocation{2}(2),stimulus.preCueNeutLocation{2}(4),stimulus.respCue.width,stimulus.black);
+    elseif stimulus.preCue.type == 1
+        mglLines2(stimulus.respcueLocation{loc}(1), stimulus.respcueLocation{loc}(3),...
+                  stimulus.respcueLocation{loc}(2), stimulus.respcueLocation{loc}(4),stimulus.respCue.width,stimulus.black);
+    end
+
+end

@@ -20,7 +20,7 @@ eval(evalargs(varargin,0,0,{'indContrast','diagonal','IndTilt','Eye'}));
 
 if ieNotDefined('indContrast'),indContrast = .8;end % initialize some default contrast vals
 if ieNotDefined('oriType'),oriType = 1;end % default is 45 & -45 (1), other option is 90 & 0 (2)
-if ieNotDefined('indTilt'),indTilt = 10;end % default tilt
+if ieNotDefined('indTilt'),indTilt = 20;end % default tilt
 if ieNotDefined('Eye'),Eye = 0;end % no eye-tracking
 if ieNotDefined('cueType'),cueType = 0;end
 
@@ -86,6 +86,8 @@ n_repeats = 3; % n = 5 -> 108 trials per block (1*2*3*3 *6)
 %trials
 % contrast(3,:,[1:2],1)=1;
 % contrast(3,:,[1:2],2)=2; 
+
+stimulus.oriType = oriType;
 
 if oriType == 1
     stimulus.baseOri = [ 42, 45, 48;...
@@ -274,8 +276,8 @@ elseif (task.thistrial.thisseg == 2) % Pre Cue
     
     if stimulus.EyeTrack && ~stimulus.FixationBreakCurrent, fixCheck(myscreen,task); end
     if ~stimulus.FixationBreakCurrent  || ~stimulus.EyeTrack
-%     drawPreCue(stimulus.randVars.targetOriAxis(task.thistrial.trialIndex));
-      drawRespCue(stimulus.tmp.respcueLocation)
+     drawPreCue(stimulus.tmp.respcueLocation);
+%       drawRespCue(stimulus.tmp.respcueLocation)
     end
     
 elseif (task.thistrial.thisseg == 3) % ISI 1
@@ -320,6 +322,8 @@ elseif (task.thistrial.thisseg == 6) % Interval 2
                          (stimulus.baseOri(stimulus.randVars.distractorOriAxis(task.thistrial.trialIndex),stimulus.randVars.baseOriDistractor(task.thistrial.trialIndex))),...
                           stimulus.tmp.texDist(:,2),1,task.thistrial.trialIndex);
     end
+elseif (task.thistrial.thisseg == 7) % ISI 3
+    drawFixation(task);
     
 elseif (task.thistrial.thisseg == 8) % Resp Cue
     drawFixation(task);
