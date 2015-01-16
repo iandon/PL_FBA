@@ -57,13 +57,13 @@ stimulus.IncorrectSound = find(strcmp(MGL.soundNames,'Basso'));
 % set up grid:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-stimulus.gaborSize = 2; %degress
+stimulus.gaborSize = .60; %degress
 stimulus.numGridLocs = 24; %going to exclude 13th, which is around fixation
 
 stimulus.numGridRows = 5;
 stimulus.numGridColumns = stimulus.numGridRows;
 
-stimulus.jitterOffsetEDGES = .1; %what is the distance between
+stimulus.jitterOffsetEDGES = .6; %what is the distance between
 stimulus.jitterOffset = stimulus.jitterOffsetEDGES/2 + stimulus.gaborSize/2; %degrees, center to center distance
 
 stimulus.jitterLoc = [ 0,                     stimulus.jitterOffset;...
@@ -71,7 +71,7 @@ stimulus.jitterLoc = [ 0,                     stimulus.jitterOffset;...
                        stimulus.jitterOffset, 0;...
                        0,                    -stimulus.jitterOffset];
 
-stimulus.distBtwnGridLoc = .1; %what is the spacing between each grid location, including the nearest 2 gabor locations
+stimulus.distBtwnGridLoc = 1.3; %what is the spacing between each grid location, including the nearest 2 gabor locations
 stimulus.spaceBtwnGridLocCENTERS = stimulus.gaborSize*2+stimulus.jitterOffset+stimulus.distBtwnGridLoc;
 
 firstInRow = [1,6,11,15,20];
@@ -82,12 +82,12 @@ stimulus.gridLocCenter{1} = [-(2*stimulus.spaceBtwnGridLocCENTERS),...
                               (2*stimulus.spaceBtwnGridLocCENTERS)]; %upper left corner
                          
 rowNum = 1;                    
-for gridLoc = 2:24
+for gridLoc = 2:stimulus.numGridLocs;
     if sum(gridLoc == firstInRow) %if it is the first in the row, put it below the 1st in the row above
         rowNum = rowNum+1;
         stimulus.gridLocCenter{gridLoc} = [stimulus.gridLocCenter{firstInRow(rowNum-1)}(1),...
                                           stimulus.gridLocCenter{firstInRow(rowNum-1)}(2)-stimulus.spaceBtwnGridLocCENTERS];
-    elseif (gridLoc == 13) %if it is the 13th, instead of putting it ontop of fixation, move it to the right of fixation
+    elseif (gridLoc == ((stimulus.numGridLocs/2)+1)) %if it is the 13th, instead of putting it ontop of fixation, move it to the right of fixation
         stimulus.gridLocCenter{gridLoc} = [stimulus.gridLocCenter{gridLoc-1}(1)+(2*stimulus.spaceBtwnGridLocCENTERS),...
                                            stimulus.gridLocCenter{gridLoc-1}(2)];
     else %%if it is not the first in the row and not the 13th item, put it right next to the previous location in the row
@@ -133,8 +133,8 @@ end
 % gabors
 stimulus.width = stimulus.gaborSize; % in deg
 stimulus.height = stimulus.gaborSize;% in deg
-stimulus.gaussSdx = stimulus.width/7;                % in deg
-stimulus.gaussSdy = stimulus.height/7;               % in deg
+stimulus.gaussSdx = stimulus.width/3;                % in deg
+stimulus.gaussSdy = stimulus.height/3;               % in deg
 stimulus.sizedg = stimulus.gaborSize; 
 
 stimulus.rotation = [1,-1]; % this is the tilt orientation of the gabor stimulus from vertical in Degrees
@@ -225,16 +225,16 @@ respCue.length = 1;
 respCue.startEcc = 0;
 
 stimulus.respCue.width =3;
-stimulus.respcueLocation = cell(2,1);
+stimulus.respCueOri = cell(2,1);
 
 targetAngleVect = [45,-45,0,90];
 
 for targetAngle = 1:length(targetAngleVect)
-        stimulus.respcueLocation{targetAngle} = [ cosd(targetAngleVect(targetAngle))*respCue.length,...
-                                                  sind(targetAngleVect(targetAngle))*respCue.length;...
+        stimulus.respCueOri{targetAngle} = [ cosd(targetAngleVect(targetAngle))*respCue.length,...
+                                             sind(targetAngleVect(targetAngle))*respCue.length;...
                          
-                                                 -cosd(targetAngleVect(targetAngle))*respCue.length,...
-                                                 -sind(targetAngleVect(targetAngle))*respCue.length];
+                                             -cosd(targetAngleVect(targetAngle))*respCue.length,...
+                                             -sind(targetAngleVect(targetAngle))*respCue.length];
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

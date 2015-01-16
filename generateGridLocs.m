@@ -24,12 +24,12 @@ stimulus.gridLocCenter{1} = [-(2*stimulus.spaceBtwnGridLocCENTERS),...
                              (2*stimulus.spaceBtwnGridLocCENTERS)]; %upper left corner
                          
 rowNum = 1;                    
-for gridLoc = 2:24
+for gridLoc = 2:stimulus.numGridLocs;
     if sum(gridLoc == firstInRow) %if it is the first in the row, put it below the 1st in the row above
         rowNum = rowNum+1;
         stimulus.gridLocCenter{gridLoc} = [stimulus.gridLocCenter{firstInRow(rowNum-1)}(1),...
                                           stimulus.gridLocCenter{firstInRow(rowNum-1)}(2)-stimulus.spaceBtwnGridLocCENTERS];
-    elseif (gridLoc == 13) %if it is the 13th, instead of putting it ontop of fixation, move it to the right of fixation
+    elseif (gridLoc == ((stimulus.numGridLocs/2)+1)) %if it is the 13th, instead of putting it ontop of fixation, move it to the right of fixation
         stimulus.gridLocCenter{gridLoc} = [stimulus.gridLocCenter{gridLoc-1}(1)+(2*stimulus.spaceBtwnGridLocCENTERS),...
                                            stimulus.gridLocCenter{gridLoc-1}(2)];
     else %%if it is not the first in the row and not the 13th item, put it right next to the previous location in the row
