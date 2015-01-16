@@ -77,9 +77,8 @@ task{1}.getResponse = [0 0 0 0 0 0 0 0 1 0 0]; % responses are allowed during re
 
 
 
-n_repeats = 3; % n = 5 -> 108 trials per block (1*2*3*3 *6)
+n_repeats = 3; % n = 3 -> 108 trials per block (1*2*2*3*3 *3)
 
- 
 [contrast,ori,targetAxis,baseOriTarget,baseOriDistractor,repeat] = ndgrid(1,1:2,1:2,1:3,1:3,1:n_repeats);
 %contrast =3 is blank trials. We wants on ~10% of total trials to be blank
 %trials. Re-assign 4 out of 6 blank trials to be non-blank stim containing
@@ -90,7 +89,7 @@ n_repeats = 3; % n = 5 -> 108 trials per block (1*2*3*3 *6)
 stimulus.oriType = oriType;
 
 if oriType == 1
-    stimulus.baseOri = [ 42, 45, 48;...
+    stimulus.baseOri = [ 42,  45,  48;...
                         -42, -45, -48];
 elseif oriType == 2
     stimulus.baseOri = [-3,  0,  3;...
@@ -367,11 +366,14 @@ end
 % stimulus.stair = upDownStaircase(stimulus.stair,stimulus.tmp.response);
 % 
 % end
-function drawRespCue(loc)
+function drawRespCue(ori)
     global stimulus
     
-    mglLines2(stimulus.respcueLocation{loc}(1), stimulus.respcueLocation{loc}(3),...
-              stimulus.respcueLocation{loc}(2), stimulus.respcueLocation{loc}(4),stimulus.respCue.width,stimulus.black);
+    if stimulus.oriType == 2
+        ori = ori+2;
+    end
+    mglLines2(stimulus.respCueOri{ori}(1), stimulus.respCueOri{ori}(3),...
+              stimulus.respCueOri{ori}(2), stimulus.respCueOri{ori}(4),stimulus.respCue.width,stimulus.black);
     
 end
 

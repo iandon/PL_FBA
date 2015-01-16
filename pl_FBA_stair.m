@@ -381,11 +381,14 @@ end
 % stimulus.stair = upDownStaircase(stimulus.stair,stimulus.tmp.response);
 % 
 % end
-function drawRespCue(loc)
+function drawRespCue(ori)
     global stimulus
     
-    mglLines2(stimulus.respCueOri{loc}(1), stimulus.respCueOri{loc}(3),...
-              stimulus.respCueOri{loc}(2), stimulus.respCueOri{loc}(4),stimulus.respCue.width,stimulus.black);
+    if stimulus.oriType == 2
+        ori = ori+2;
+    end
+    mglLines2(stimulus.respCueOri{ori}(1), stimulus.respCueOri{ori}(3),...
+              stimulus.respCueOri{ori}(2), stimulus.respCueOri{ori}(4),stimulus.respCue.width,stimulus.black);
     
 end
 
